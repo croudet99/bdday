@@ -41,15 +41,15 @@ function emailShell(inner) {
     <div style="max-width:520px;margin:0 auto;border-radius:26px;overflow:hidden;border:1px solid rgba(255,255,255,0.10);background:#0d0b1f">
       <div style="background:linear-gradient(135deg,#FF4D8D 0%,#A855F7 50%,#22D3EE 100%);padding:38px 28px;text-align:center">
         <div style="font-size:48px;line-height:1">🎂</div>
-        <div style="color:#fff;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:10px;opacity:0.95">Birthday Globe</div>
+        <div style="color:#fff;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:10px;opacity:0.95">BddayBook</div>
       </div>
       <div style="padding:30px 28px;color:#e7e7f0;font-size:16px;line-height:1.65">
         ${inner}
         <div style="margin-top:28px;text-align:center">
-          <a href="https://bdday.tech" style="display:inline-block;background:linear-gradient(135deg,#FF4D8D,#A855F7);color:#fff;text-decoration:none;font-weight:600;padding:13px 26px;border-radius:999px">Open Birthday Globe</a>
+          <a href="https://bdday.tech" style="display:inline-block;background:linear-gradient(135deg,#FF4D8D,#A855F7);color:#fff;text-decoration:none;font-weight:600;padding:13px 26px;border-radius:999px">Open BddayBook</a>
         </div>
       </div>
-      <div style="padding:16px;text-align:center;color:#7a7a90;font-size:12px;border-top:1px solid rgba(255,255,255,0.08)">You are receiving this because you use Birthday Globe 🌍</div>
+      <div style="padding:16px;text-align:center;color:#7a7a90;font-size:12px;border-top:1px solid rgba(255,255,255,0.08)">You are receiving this because you use BddayBook 🌍</div>
     </div>
   </div>`
 }
@@ -174,7 +174,7 @@ async function handleRoute(request, { params }) {
 
   try {
     if ((route === '/' || route === '/health') && method === 'GET') {
-      return cors(NextResponse.json({ status: 'ok', service: 'Birthday Globe API', supabase: !!serviceKey, resend: !!resendApiKey, from: RESEND_FROM || null }))
+      return cors(NextResponse.json({ status: 'ok', service: 'BddayBook API', supabase: !!serviceKey, resend: !!resendApiKey, from: RESEND_FROM || null }))
     }
 
     if (route === '/test-email' && method === 'POST') {
@@ -182,7 +182,7 @@ async function handleRoute(request, { params }) {
       if (!body.to) return cors(NextResponse.json({ error: 'to is required' }, { status: 400 }))
       const data = await sendEmail({
         to: body.to,
-        subject: '\uD83C\uDF82 Birthday Globe test email',
+        subject: '\uD83C\uDF82 BddayBook test email',
         html: emailShell('<p style=\"font-size:16px\">Your Resend integration is working perfectly! \uD83C\uDF89</p>'),
         text: 'Your Resend integration is working!',
       })

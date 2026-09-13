@@ -3,13 +3,13 @@ import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 
 export const metadata = {
-  title: 'Birthday Globe \u2014 never miss a birthday, anywhere on Earth',
-  description: 'A global birthday calendar. Add your birthday, discover celebrations around the world on a 3D globe, follow friends and get reminders.',
+  title: 'BddayBook \u2014 never miss a birthday, anywhere on Earth',
+  description: 'A global birthday calendar. Add your birthday, discover celebrations around the world, follow friends, and get reminders.',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
