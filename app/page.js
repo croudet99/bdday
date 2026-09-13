@@ -285,7 +285,7 @@ function Onboarding({ user, initial, onDone }) {
     const c = COUNTRY_MAP[country]
     const payload = { id: user.id, email: user.email, display_name: name, birth_month: Number(month), birth_day: Number(day),
       birth_year: year ? Number(year) : null, birth_year_public: yearPublic, country: c?.name || null, country_code: country,
-      x_handle: x || null, instagram_handle: ig || null, is_public: isPublic, reminders_enabled: true, onboarded: true, updated_at: new Date().toISOString() }
+      x_handle: x || null, instagram_handle: ig || null, is_public: isPublic, reminders_enabled: true, reminder_offsets: [1], onboarded: true, updated_at: new Date().toISOString() }
     const { data, error } = await supabase.from('profiles').upsert(payload).select().maybeSingle()
     setBusy(false)
     if (error) { toast.error(error.message); return }
@@ -681,16 +681,18 @@ function ProfileTab({ user, profile, setProfile, reload }) {
   const [x, setX] = useState(profile?.x_handle || ''); const [ig, setIg] = useState(profile?.instagram_handle || '')
   const [isPublic, setIsPublic] = useState(profile?.is_public ?? true)
   const [reminders, setReminders] = useState(profile?.reminders_enabled ?? true)
+  const [offsets, setOffsets] = useState(Array.isArray(profile?.reminder_offsets) ? profile.reminder_offsets : [1])
   const [busy, setBusy] = useState(false)
   const [testing, setTesting] = useState(false)
   const dayCount = month ? daysInMonth(Number(month)) : 31
+  const toggleOffset = (o) => setOffsets((prev) => prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o].sort((a, b) => b - a))
 
   async function save() {
     setBusy(true)
     const c = COUNTRY_MAP[country]
     const payload = { id: user.id, email: user.email, display_name: name, birth_month: month ? Number(month) : null, birth_day: day ? Number(day) : null,
       birth_year: year ? Number(year) : null, birth_year_public: yearPublic, country: c?.name || null, country_code: country || null,
-      x_handle: x || null, instagram_handle: ig || null, is_public: isPublic, reminders_enabled: reminders, onboarded: true, updated_at: new Date().toISOString() }
+      x_handle: x || null, instagram_handle: ig || null, is_public: isPublic, reminders_enabled: reminders, reminder_offsets: offsets.length ? offsets : [1], onboarded: true, updated_at: new Date().toISOString() }
     const { data, error } = await supabase.from('profiles').upsert(payload).select().maybeSingle()
     setBusy(false)
     if (error) { toast.error(error.message); return }
@@ -734,7 +736,23 @@ function ProfileTab({ user, profile, setProfile, reload }) {
         </div>
         <ToggleRow title="Public birthday 🌍" desc="Show on the global calendar & globe" checked={isPublic} onChange={setIsPublic} color={C.pink} />
         <ToggleRow title="Show birth year" desc="Reveal your age publicly" checked={yearPublic} onChange={setYearPublic} disabled={!year} color={C.blue} />
-        <ToggleRow title="Email reminders" desc="Emailed 24h before birthdays you follow" checked={reminders} onChange={setReminders} color={C.purple} />
+        <ToggleRow title="Email reminders" desc="Get emailed before birthdays you follow" checked={reminders} onChange={setReminders} color={C.purple} />
+        <div className="rounded-2xl border-[3px] border-black bg-white p-3">
+          <p className="font-extrabold">Remind me…</p>
+          <p className="text-xs font-semibold text-black/60 mb-2.5">Pick when to get emailed before each birthday</p>
+          <div className="flex flex-wrap gap-2">
+            {[{ o: 3, l: '3 days before' }, { o: 1, l: '1 day before' }, { o: 0, l: 'Morning of' }].map(({ o, l }) => {
+              const on = offsets.includes(o)
+              return (
+                <button key={o} type="button" disabled={!reminders} onClick={() => toggleOffset(o)}
+                  style={{ background: on ? C.purple : '#fff', color: on ? '#fff' : '#000' }}
+                  className="rounded-full border-[3px] border-black px-3.5 py-1.5 text-xs font-extrabold uppercase shadow-hard-sm transition hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-40 disabled:pointer-events-none">
+                  {on ? '✓ ' : ''}{l}
+                </button>
+              )
+            })}
+          </div>
+        </div>
         <Btn onClick={save} color={C.pink} disabled={busy} className="w-full py-3">{busy ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save profile'}</Btn>
         <div className="rounded-2xl border-[3px] border-dashed border-black/40 p-3 space-y-2">
           <button onClick={testReminder} disabled={testing} className="w-full rounded-full border-[3px] border-black bg-white px-5 py-3 font-extrabold uppercase text-sm shadow-hard-sm hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition disabled:opacity-60 flex items-center justify-center gap-2">

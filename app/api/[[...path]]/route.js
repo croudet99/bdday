@@ -55,22 +55,30 @@ async function sendEmail({ to, subject, html, text, key }) {
   return result.data
 }
 
+function whenPhrase(days) {
+  if (days === 0) return 'is today'
+  if (days === 1) return 'is tomorrow'
+  return `is in ${days} days`
+}
+
 function buildMessage(task) {
+  const days = task.days == null ? 1 : task.days
+  const when = whenPhrase(days)
   if (task.type === 'self_birthday') {
     return {
-      subject: '\uD83C\uDF89 Your birthday is tomorrow!',
-      title: 'Your birthday is tomorrow!',
+      subject: `🎉 Your birthday ${when}!`,
+      title: `Your birthday ${when}!`,
       body: 'The world is getting ready to celebrate you. Have an amazing day!',
-      html: emailShell(`<p style=\"font-size:16px\">Hi ${esc(task.recipientName)},</p><p style=\"font-size:16px\">Your birthday is <strong>tomorrow</strong>! \uD83C\uDF88 The world is ready to celebrate you.</p>`),
-      text: `Hi ${task.recipientName}, your birthday is tomorrow!`,
+      html: emailShell(`<p style="font-size:16px">Hi ${esc(task.recipientName)},</p><p style="font-size:16px">Your birthday <strong>${when}</strong>! 🎈 The world is ready to celebrate you.</p>`),
+      text: `Hi ${task.recipientName}, your birthday ${when}!`,
     }
   }
   return {
-    subject: `\uD83C\uDF82 ${task.subjectName}'s birthday is tomorrow`,
-    title: `${task.subjectName}'s birthday is tomorrow`,
+    subject: `🎂 ${task.subjectName}'s birthday ${when}`,
+    title: `${task.subjectName}'s birthday ${when}`,
     body: 'Do not forget to send your wishes!',
-    html: emailShell(`<p style=\"font-size:16px\">Hi ${esc(task.recipientName)},</p><p style=\"font-size:16px\"><strong>${esc(task.subjectName)}</strong>'s birthday is <strong>tomorrow</strong>! \uD83C\uDF89 Do not forget to send your wishes.</p>`),
-    text: `Hi ${task.recipientName}, ${task.subjectName}'s birthday is tomorrow!`,
+    html: emailShell(`<p style="font-size:16px">Hi ${esc(task.recipientName)},</p><p style="font-size:16px"><strong>${esc(task.subjectName)}</strong>'s birthday <strong>${when}</strong>! 🎉 Do not forget to send your wishes.</p>`),
+    text: `Hi ${task.recipientName}, ${task.subjectName}'s birthday ${when}!`,
   }
 }
 
@@ -85,44 +93,44 @@ function serverDaysUntil(month, day) {
 
 async function runReminders(opts = {}) {
   const db = admin()
-  const daysAhead = opts.daysAhead == null ? 1 : Number(opts.daysAhead)
   let base = new Date()
   if (opts.dateOverride) base = new Date(opts.dateOverride + 'T00:00:00Z')
-  const target = new Date(base.getTime() + daysAhead * 24 * 3600 * 1000)
-  const tMonth = target.getUTCMonth() + 1
-  const tDay = target.getUTCDate()
-  const dateKey = `${target.getUTCFullYear()}-${String(tMonth).padStart(2, '0')}-${String(tDay).padStart(2, '0')}`
+  const offsets = Array.isArray(opts.offsets) ? opts.offsets.map(Number)
+    : (opts.daysAhead != null ? [Number(opts.daysAhead)] : [0, 1, 3])
+  const force = !!opts.force || opts.daysAhead != null
   const dryRun = !!opts.dryRun
 
   const [{ data: profiles }, { data: follows }, { data: personal }] = await Promise.all([
-    db.from('profiles').select('id,email,display_name,birth_month,birth_day,reminders_enabled'),
+    db.from('profiles').select('id,email,display_name,birth_month,birth_day,reminders_enabled,reminder_offsets'),
     db.from('follows').select('follower_id,followed_id'),
     db.from('personal_birthdays').select('owner_id,person_name,birth_month,birth_day'),
   ])
   const pmap = {}
   ;(profiles || []).forEach((p) => { pmap[p.id] = p })
+  const wants = (rec, o) => rec && rec.email && rec.reminders_enabled !== false &&
+    (force || (Array.isArray(rec.reminder_offsets) ? rec.reminder_offsets : [1]).includes(o))
 
   const tasks = []
-  for (const p of profiles || []) {
-    if (p.birth_month === tMonth && p.birth_day === tDay) {
-      if (p.reminders_enabled !== false && p.email) {
-        tasks.push({ type: 'self_birthday', recipientId: p.id, email: p.email, recipientName: p.display_name || 'there', subjectName: p.display_name, subjectPart: 'self' })
-      }
-      for (const f of follows || []) {
-        if (f.followed_id === p.id) {
-          const rec = pmap[f.follower_id]
-          if (rec && rec.email && rec.reminders_enabled !== false) {
-            tasks.push({ type: 'followed_birthday', recipientId: rec.id, email: rec.email, recipientName: rec.display_name || 'there', subjectName: p.display_name, subjectPart: p.id })
+  for (const o of offsets) {
+    const target = new Date(base.getTime() + o * 86400000)
+    const tMonth = target.getUTCMonth() + 1
+    const tDay = target.getUTCDate()
+    const dateKey = `${target.getUTCFullYear()}-${String(tMonth).padStart(2, '0')}-${String(tDay).padStart(2, '0')}`
+    for (const p of profiles || []) {
+      if (p.birth_month === tMonth && p.birth_day === tDay) {
+        if (wants(p, o)) tasks.push({ type: 'self_birthday', days: o, dateKey, recipientId: p.id, email: p.email, recipientName: p.display_name || 'there', subjectName: p.display_name, subjectPart: 'self' })
+        for (const f of follows || []) {
+          if (f.followed_id === p.id) {
+            const rec = pmap[f.follower_id]
+            if (wants(rec, o)) tasks.push({ type: 'followed_birthday', days: o, dateKey, recipientId: rec.id, email: rec.email, recipientName: rec.display_name || 'there', subjectName: p.display_name, subjectPart: p.id })
           }
         }
       }
     }
-  }
-  for (const pb of personal || []) {
-    if (pb.birth_month === tMonth && pb.birth_day === tDay) {
-      const rec = pmap[pb.owner_id]
-      if (rec && rec.email && rec.reminders_enabled !== false) {
-        tasks.push({ type: 'personal_birthday', recipientId: rec.id, email: rec.email, recipientName: rec.display_name || 'there', subjectName: pb.person_name, subjectPart: 'pb:' + pb.person_name })
+    for (const pb of personal || []) {
+      if (pb.birth_month === tMonth && pb.birth_day === tDay) {
+        const rec = pmap[pb.owner_id]
+        if (wants(rec, o)) tasks.push({ type: 'personal_birthday', days: o, dateKey, recipientId: rec.id, email: rec.email, recipientName: rec.display_name || 'there', subjectName: pb.person_name, subjectPart: 'pb:' + pb.person_name })
       }
     }
   }
@@ -130,7 +138,7 @@ async function runReminders(opts = {}) {
   let sent = 0, skipped = 0, failed = 0
   const details = []
   for (const t of tasks) {
-    const key = `${t.type}:${t.recipientId}:${t.subjectPart}:${dateKey}`
+    const key = `${t.type}:${t.recipientId}:${t.subjectPart}:${t.days}:${t.dateKey}`
     if (!dryRun) {
       const ins = await db.from('email_log').insert({ key })
       if (ins.error) { skipped++; continue }
@@ -139,17 +147,17 @@ async function runReminders(opts = {}) {
     try {
       if (!dryRun) {
         await sendEmail({ to: t.email, subject: msg.subject, html: msg.html, text: msg.text, key })
-        await db.from('notifications').insert({ recipient_id: t.recipientId, type: t.type, title: msg.title, body: msg.body, payload: { subject: t.subjectName } })
+        await db.from('notifications').insert({ recipient_id: t.recipientId, type: t.type, title: msg.title, body: msg.body, payload: { subject: t.subjectName, days: t.days } })
       }
       sent++
-      details.push({ to: t.email, subject: msg.subject })
+      details.push({ to: t.email, subject: msg.subject, days: t.days })
     } catch (e) {
       failed++
       if (!dryRun) { await db.from('email_log').delete().eq('key', key) }
       details.push({ to: t.email, error: e.message })
     }
   }
-  return { ok: true, date: dateKey, tasksFound: tasks.length, sent, skipped, failed, dryRun, details }
+  return { ok: true, offsets, force, tasksFound: tasks.length, sent, skipped, failed, dryRun, details }
 }
 
 async function handleRoute(request, { params }) {
@@ -174,12 +182,12 @@ async function handleRoute(request, { params }) {
       return cors(NextResponse.json({ ok: true, id: data && data.id }))
     }
 
-    if (route === '/reminders/run' && method === 'POST') {
+    if (route === '/reminders/run' && (method === 'POST' || method === 'GET')) {
       const auth = request.headers.get('authorization') || ''
       if (auth !== `Bearer ${CRON_SECRET}`) {
         return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
       }
-      const body = await request.json().catch(() => ({}))
+      const body = method === 'POST' ? await request.json().catch(() => ({})) : {}
       const result = await runReminders(body)
       return cors(NextResponse.json(result))
     }
