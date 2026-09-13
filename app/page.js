@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { supabase } from '@/lib/supabaseClient'
-import { COUNTRIES, COUNTRY_MAP, flagEmoji } from '@/lib/countries'
+import { COUNTRIES, COUNTRY_MAP } from '@/lib/countries'
 import { toast } from 'sonner'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   Globe2, Bell, LogOut, Calendar as CalIcon, Search, Users, UserPlus, UserMinus,
   Instagram, Twitter, MapPin, ChevronLeft, ChevronRight, Loader2, Plus, Trash2, Gift, CalendarClock,
-  Heart, Sparkles, Cake, ArrowRight, Check,
+  Heart, Sparkles, Cake, ArrowRight, Check, Shield,
 } from 'lucide-react'
 
 const GlobeView = dynamic(() => import('@/components/GlobeView'), { ssr: false })
@@ -43,18 +43,18 @@ function Card({ className = '', children, style }) {
   return <div style={style} className={`rounded-[28px] glass-card shadow-soft ${className}`}>{children}</div>
 }
 function Button({ variant = 'primary', className = '', children, ...props }) {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-full text-sm font-semibold transition active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none'
+  const base = 'inline-flex items-center justify-center gap-2 rounded-full text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none'
   const map = {
-    primary: 'text-white px-5 py-2.5 glow-grad hover:brightness-110',
-    light: 'bg-slate-900 text-white px-5 py-2.5 hover:bg-slate-800',
-    soft: 'bg-white/80 text-slate-900 px-5 py-2.5 hover:bg-white border border-slate-900/10',
+    primary: 'text-white px-5 py-2.5 glow-grad shadow-sm hover:brightness-105 hover:-translate-y-0.5',
+    light: 'bg-slate-900 text-white px-5 py-2.5 shadow-sm hover:bg-slate-800 hover:-translate-y-0.5',
+    soft: 'bg-white/90 text-slate-900 px-5 py-2.5 hover:bg-white border border-slate-900/12 shadow-sm hover:-translate-y-0.5',
     ghost: 'text-slate-700 px-3 py-2 hover:bg-slate-900/5',
   }
   const style = variant === 'primary' ? { backgroundImage: GRAD } : undefined
   return <button {...props} style={style} className={`${base} ${map[variant]} ${className}`}>{children}</button>
 }
 function IconButton({ className = '', children, ...props }) {
-  return <button {...props} className={`w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-900/5 transition ${className}`}>{children}</button>
+  return <button {...props} className={`w-10 h-10 rounded-full flex items-center justify-center text-slate-700 hover:bg-slate-900/5 transition-all duration-200 hover:-translate-y-0.5 ${className}`}>{children}</button>
 }
 function Avatar({ name, size = 'w-11 h-11', text = 'text-base' }) {
   return <div style={{ backgroundImage: GRAD }} className={`${size} shrink-0 rounded-full flex items-center justify-center font-semibold text-white ${text}`}>{(name || '?')[0]?.toUpperCase()}</div>
@@ -124,7 +124,10 @@ export default function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3"><div className="text-5xl">🎂</div><Loader2 className="w-5 h-5 animate-spin text-slate-500" /></div>
+        <div className="flex flex-col items-center gap-3">
+          <div style={{ backgroundImage: GRAD }} className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-soft"><Cake className="w-7 h-7 text-white" /></div>
+          <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+        </div>
       </div>
     )
   }
@@ -174,13 +177,13 @@ function Landing({ publicBirthdays, onStart }) {
     <div>
       <nav className="sticky top-0 z-30 glass border-b border-slate-900/10">
         <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold"><span style={{ backgroundImage: GRAD }} className="w-7 h-7 rounded-full flex items-center justify-center text-sm">🎂</span> BddayBook</div>
+          <div className="flex items-center gap-2 font-semibold"><span style={{ backgroundImage: GRAD }} className="w-7 h-7 rounded-full flex items-center justify-center"><Cake className="w-4 h-4 text-white" /></span> BddayBook</div>
           <div className="flex items-center gap-1"><Button variant="ghost" onClick={onStart}>Sign in</Button><Button variant="light" onClick={onStart}>Get started</Button></div>
         </div>
       </nav>
 
       <section className="max-w-6xl mx-auto px-5 pt-16 pb-10 text-center">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/70 border border-slate-900/10 px-3 py-1 text-[13px] font-medium text-slate-700 mb-5">🌍 The world&apos;s birthday calendar</div>
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/70 border border-slate-900/10 px-3 py-1 text-[13px] font-medium text-slate-700 mb-5"><Globe2 className="w-3.5 h-3.5" /> The world&apos;s birthday calendar</div>
         <h1 className="font-display text-5xl sm:text-[68px] font-bold leading-[1.03]">Never miss a birthday.<br /><span style={{ backgroundImage: GRAD, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>Anywhere on Earth.</span></h1>
         <p className="mt-5 text-[19px] text-slate-600 max-w-2xl mx-auto leading-relaxed">Pin your birthday to a live 3D globe, follow friends across the planet, and get a beautifully-timed email before every birthday you love.</p>
         <div className="mt-8 flex items-center justify-center gap-3">
@@ -236,7 +239,7 @@ function Auth({ onBack, onAuthed }) {
     <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-[400px] p-8">
         <div className="flex flex-col items-center text-center mb-6">
-          <span style={{ backgroundImage: GRAD }} className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl">🎂</span>
+          <span style={{ backgroundImage: GRAD }} className="w-12 h-12 rounded-2xl flex items-center justify-center"><Cake className="w-6 h-6 text-white" /></span>
           <h2 className="font-display text-[26px] font-bold mt-4">{mode === 'signup' ? 'Create your account' : 'Welcome back'}</h2>
           <p className="text-[15px] text-slate-600 mt-1">{mode === 'signup' ? 'Join the global birthday calendar' : 'Sign in to your BddayBook'}</p>
         </div>
@@ -250,7 +253,7 @@ function Auth({ onBack, onAuthed }) {
           {mode === 'signup' ? 'Already have an account? ' : 'New here? '}
           <button className="font-semibold text-slate-900" onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}>{mode === 'signup' ? 'Sign in' : 'Create one'}</button>
         </div>
-        <button className="mt-3 w-full text-center text-[13px] text-slate-400 hover:text-slate-700" onClick={onBack}>← Back to home</button>
+        <button className="mt-3 w-full text-center text-[13px] text-slate-400 hover:text-slate-700 inline-flex items-center justify-center gap-1" onClick={onBack}><ChevronLeft className="w-3.5 h-3.5" /> Back to home</button>
       </Card>
     </div>
   )
@@ -297,7 +300,7 @@ function Onboarding({ user, initial, onDone }) {
             <div><Label className={lbl}>Year</Label><Input type="number" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Optional" className={FIELD + ' mt-1.5'} /></div>
           </div>
           <ToggleRow title="Show my birth year" desc="Off keeps your age private" checked={yearPublic} onChange={setYearPublic} disabled={!year} />
-          <div><Label className={lbl}>Country</Label><Select value={country} onValueChange={setCountry}><SelectTrigger className={FIELD + ' mt-1.5'}><SelectValue placeholder="Where are you?" /></SelectTrigger><SelectContent className="max-h-72">{COUNTRIES.map((c) => <SelectItem key={c.code} value={c.code}>{flagEmoji(c.code)} {c.name}</SelectItem>)}</SelectContent></Select></div>
+          <div><Label className={lbl}>Country</Label><Select value={country} onValueChange={setCountry}><SelectTrigger className={FIELD + ' mt-1.5'}><SelectValue placeholder="Where are you?" /></SelectTrigger><SelectContent className="max-h-72">{COUNTRIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)}</SelectContent></Select></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label className={lbl + ' flex items-center gap-1'}><Twitter className="w-3.5 h-3.5" /> X</Label><Input value={x} onChange={(e) => setX(e.target.value)} placeholder="@handle" className={FIELD + ' mt-1.5'} /></div>
             <div><Label className={lbl + ' flex items-center gap-1'}><Instagram className="w-3.5 h-3.5" /> Instagram</Label><Input value={ig} onChange={(e) => setIg(e.target.value)} placeholder="@handle" className={FIELD + ' mt-1.5'} /></div>
@@ -346,10 +349,10 @@ function Dashboard({ user, profile, setProfile, publicBirthdays, followedIds, pe
     <div>
       <header className="sticky top-0 z-30 glass border-b border-slate-900/10">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 font-semibold"><span style={{ backgroundImage: GRAD }} className="w-7 h-7 rounded-full flex items-center justify-center text-sm">🎂</span> <span className="hidden sm:inline">BddayBook</span></div>
+          <div className="flex items-center gap-2 font-semibold"><span style={{ backgroundImage: GRAD }} className="w-7 h-7 rounded-full flex items-center justify-center"><Cake className="w-4 h-4 text-white" /></span> <span className="hidden sm:inline">BddayBook</span></div>
           <div className="inline-flex items-center gap-1 rounded-full bg-slate-900/5 border border-slate-900/10 p-1">
-            {[{ v: 'global', label: '🌍 Global' }, { v: 'personal', label: '🔒 Personal' }].map((o) => (
-              <button key={o.v} onClick={() => setMode(o.v)} className={`px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition ${mode === o.v ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'}`}>{o.label}</button>
+            {[{ v: 'global', label: 'Global', icon: Globe2 }, { v: 'personal', label: 'Personal', icon: Shield }].map((o) => (
+              <button key={o.v} onClick={() => setMode(o.v)} className={`px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition inline-flex items-center gap-1.5 ${mode === o.v ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'}`}><o.icon className="w-3.5 h-3.5" />{o.label}</button>
             ))}
           </div>
           <div className="flex items-center gap-1">
@@ -429,7 +432,7 @@ function PersonRow({ b, onClick }) {
   return (
     <button onClick={onClick} className="w-full text-left flex items-center gap-3 rounded-2xl p-2 hover:bg-slate-900/5 transition">
       <Avatar name={b.display_name} size="w-10 h-10" text="text-sm" />
-      <div className="min-w-0 flex-1"><p className="font-medium text-[15px] truncate">{b.display_name}</p><p className="text-[13px] text-slate-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> {c ? `${flagEmoji(b.country_code)} ${c.name}` : 'Earth'}</p></div>
+      <div className="min-w-0 flex-1"><p className="font-medium text-[15px] truncate">{b.display_name}</p><p className="text-[13px] text-slate-500 flex items-center gap-1"><MapPin className="w-3 h-3" /> {c ? c.name : 'Global'}</p></div>
     </button>
   )
 }
@@ -453,7 +456,7 @@ function UpcomingTab({ mode, publicBirthdays, followedIds, personal, profile, on
   return (
     <div>
       <div className="flex items-baseline gap-3 mb-5"><h2 className="font-display text-[28px] font-bold">Next 7 days</h2><span className="text-[15px] text-slate-600">{upcoming.length} coming up</span></div>
-      {upcoming.length === 0 && <Card className="p-12 text-center"><div className="text-4xl mb-2">🎈</div><p className="font-semibold text-lg">No birthdays in the next week</p><p className="text-slate-600 mt-1">{mode === 'global' ? 'Invite friends so the globe fills up.' : 'Follow people or add private birthdays.'}</p></Card>}
+      {upcoming.length === 0 && <Card className="p-12 text-center"><div className="w-12 h-12 rounded-2xl mx-auto mb-2 bg-slate-900/5 flex items-center justify-center"><Sparkles className="w-6 h-6 text-slate-500" /></div><p className="font-semibold text-lg">No birthdays in the next week</p><p className="text-slate-600 mt-1">{mode === 'global' ? 'Invite friends so the globe fills up.' : 'Follow people or add private birthdays.'}</p></Card>}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {upcoming.map((e, i) => {
           const c = COUNTRY_MAP[e.country_code]; const clickable = e.source === 'public' || e.source === 'subscribed'; const col = SRC_COLOR[e.source]
@@ -465,7 +468,7 @@ function UpcomingTab({ mode, publicBirthdays, followedIds, personal, profile, on
               </div>
               <button disabled={!clickable} onClick={() => clickable && onSelect(e)} className="w-full text-left flex items-center gap-3">
                 <Avatar name={e.name} />
-                <div className="min-w-0"><p className="font-medium text-[15px] truncate">{e.name}</p><p className="text-[13px] text-slate-500">{e.source === 'personal' ? (e.relationship || 'Private') : c ? `${flagEmoji(e.country_code)} ${c.name}` : (e.source === 'self' ? 'Your birthday' : 'Earth')}</p></div>
+                <div className="min-w-0"><p className="font-medium text-[15px] truncate">{e.name}</p><p className="text-[13px] text-slate-500">{e.source === 'personal' ? (e.relationship || 'Private') : c ? c.name : (e.source === 'self' ? 'Your birthday' : 'Global')}</p></div>
               </button>
             </Card>
           )
@@ -540,7 +543,7 @@ function DiscoverTab({ user, followedIds, follow, unfollow }) {
           return (
             <Card key={b.id} className="p-4 flex items-center gap-3">
               <Avatar name={b.display_name} />
-              <div className="min-w-0 flex-1"><p className="font-medium text-[15px] truncate">{b.display_name}</p><p className="text-[13px] text-slate-500 truncate">{MONTH_ABBR[b.birth_month - 1]} {b.birth_day} · {c ? `${flagEmoji(b.country_code)} ${c.name}` : 'Earth'}</p></div>
+              <div className="min-w-0 flex-1"><p className="font-medium text-[15px] truncate">{b.display_name}</p><p className="text-[13px] text-slate-500 truncate">{MONTH_ABBR[b.birth_month - 1]} {b.birth_day} · {c ? c.name : 'Global'}</p></div>
               {following ? <IconButton className="bg-slate-900/5" onClick={() => unfollow(b.id)}><UserMinus className="w-4 h-4" /></IconButton> : <Button variant="primary" onClick={() => follow(b.id)} className="px-3.5 py-2"><UserPlus className="w-4 h-4" /></Button>}
             </Card>
           )
@@ -666,7 +669,7 @@ function ProfileTab({ user, profile, setProfile, reload }) {
             <div><Label className={lbl}>Day</Label><Select value={day} onValueChange={setDay}><SelectTrigger className={FIELD + ' mt-1.5'}><SelectValue placeholder="Day" /></SelectTrigger><SelectContent className="max-h-60">{Array.from({ length: dayCount }, (_, i) => i + 1).map((d) => <SelectItem key={d} value={String(d)}>{d}</SelectItem>)}</SelectContent></Select></div>
             <div><Label className={lbl}>Year</Label><Input type="number" value={year} onChange={(e) => setYear(e.target.value)} placeholder="Optional" className={FIELD + ' mt-1.5'} /></div>
           </div>
-          <div><Label className={lbl}>Country</Label><Select value={country} onValueChange={setCountry}><SelectTrigger className={FIELD + ' mt-1.5'}><SelectValue placeholder="Country" /></SelectTrigger><SelectContent className="max-h-72">{COUNTRIES.map((c) => <SelectItem key={c.code} value={c.code}>{flagEmoji(c.code)} {c.name}</SelectItem>)}</SelectContent></Select></div>
+          <div><Label className={lbl}>Country</Label><Select value={country} onValueChange={setCountry}><SelectTrigger className={FIELD + ' mt-1.5'}><SelectValue placeholder="Country" /></SelectTrigger><SelectContent className="max-h-72">{COUNTRIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)}</SelectContent></Select></div>
           <div className="grid grid-cols-2 gap-3">
             <div><Label className={lbl + ' flex items-center gap-1'}><Twitter className="w-3.5 h-3.5" /> X</Label><Input value={x} onChange={(e) => setX(e.target.value)} placeholder="@handle" className={FIELD + ' mt-1.5'} /></div>
             <div><Label className={lbl + ' flex items-center gap-1'}><Instagram className="w-3.5 h-3.5" /> Instagram</Label><Input value={ig} onChange={(e) => setIg(e.target.value)} placeholder="@handle" className={FIELD + ' mt-1.5'} /></div>
@@ -723,7 +726,7 @@ function PersonDialog({ person, onClose, followedIds, follow, unfollow, meId }) 
           <DialogHeader>
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-white/25 backdrop-blur flex items-center justify-center text-2xl font-bold">{(person.display_name || '?')[0]?.toUpperCase()}</div>
-              <div className="text-left"><DialogTitle className="text-2xl font-bold">{person.display_name}</DialogTitle><DialogDescription className="text-white/80">{c ? `${flagEmoji(person.country_code)} ${c.name}` : 'Earth'}</DialogDescription></div>
+              <div className="text-left"><DialogTitle className="text-2xl font-bold">{person.display_name}</DialogTitle><DialogDescription className="text-white/80">{c ? c.name : 'Global'}</DialogDescription></div>
             </div>
           </DialogHeader>
         </div>
@@ -752,7 +755,7 @@ function buildGlobePoints(publicBirthdays, tM, tD) {
     const dU = daysUntil(b.birth_month, b.birth_day); const soon = dU > 0 && dU <= 7
     const jLat = ((hashCode(b.id) % 100) / 100 - 0.5) * 4
     const jLng = ((hashCode(b.id + 'x') % 100) / 100 - 0.5) * 4
-    pts.push({ lat: c.lat + jLat, lng: c.lng + jLng, color: isToday ? '#FF5C93' : soon ? '#FFB020' : '#A78BFA', r: isToday ? 0.8 : soon ? 0.5 : 0.28, alt: isToday ? 0.1 : soon ? 0.05 : 0.01, label: `${flagEmoji(b.country_code)} ${b.display_name} · ${c.name}${isToday ? ' · Today!' : soon ? ` · in ${dU}d` : ''}`, data: b })
+    pts.push({ lat: c.lat + jLat, lng: c.lng + jLng, color: isToday ? '#FF5C93' : soon ? '#FFB020' : '#A78BFA', r: isToday ? 0.8 : soon ? 0.5 : 0.28, alt: isToday ? 0.1 : soon ? 0.05 : 0.01, label: `${b.display_name} · ${c.name}${isToday ? ' · Today!' : soon ? ` · in ${dU}d` : ''}`, data: b })
   }
   return pts
 }
