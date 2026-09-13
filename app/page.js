@@ -248,7 +248,7 @@ function Auth({ onBack, onAuthed }) {
         </form>
         <div className="mt-5 text-center text-[14px] text-slate-600">
           {mode === 'signup' ? 'Already have an account? ' : 'New here? '}
-          <button className="font-semibold text-white" onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}>{mode === 'signup' ? 'Sign in' : 'Create one'}</button>
+          <button className="font-semibold text-slate-900" onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')}>{mode === 'signup' ? 'Sign in' : 'Create one'}</button>
         </div>
         <button className="mt-3 w-full text-center text-[13px] text-slate-400 hover:text-slate-700" onClick={onBack}>← Back to home</button>
       </Card>
