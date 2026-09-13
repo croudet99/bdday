@@ -37,12 +37,19 @@ function esc(s) {
 }
 
 function emailShell(inner) {
-  return `<div style=\"font-family:Arial,Helvetica,sans-serif;background:#0f0f1a;padding:32px;color:#e5e7eb\">
-    <div style=\"max-width:520px;margin:0 auto;background:linear-gradient(135deg,#1e1b4b,#3b0764);border-radius:16px;padding:32px;text-align:center\">
-      <div style=\"font-size:44px\">\uD83C\uDF82</div>
-      <h1 style=\"color:#f9a8d4;font-size:22px;margin:12px 0\">Birthday Globe</h1>
-      ${inner}
-      <p style=\"margin-top:28px;font-size:12px;color:#a1a1aa\">You are receiving this because you use Birthday Globe.</p>
+  return `<div style="margin:0;background:#06060f;padding:32px 16px;font-family:Inter,Arial,Helvetica,sans-serif">
+    <div style="max-width:520px;margin:0 auto;border-radius:26px;overflow:hidden;border:1px solid rgba(255,255,255,0.10);background:#0d0b1f">
+      <div style="background:linear-gradient(135deg,#FF4D8D 0%,#A855F7 50%,#22D3EE 100%);padding:38px 28px;text-align:center">
+        <div style="font-size:48px;line-height:1">🎂</div>
+        <div style="color:#fff;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-top:10px;opacity:0.95">Birthday Globe</div>
+      </div>
+      <div style="padding:30px 28px;color:#e7e7f0;font-size:16px;line-height:1.65">
+        ${inner}
+        <div style="margin-top:28px;text-align:center">
+          <a href="https://bdday.tech" style="display:inline-block;background:linear-gradient(135deg,#FF4D8D,#A855F7);color:#fff;text-decoration:none;font-weight:600;padding:13px 26px;border-radius:999px">Open Birthday Globe</a>
+        </div>
+      </div>
+      <div style="padding:16px;text-align:center;color:#7a7a90;font-size:12px;border-top:1px solid rgba(255,255,255,0.08)">You are receiving this because you use Birthday Globe 🌍</div>
     </div>
   </div>`
 }
