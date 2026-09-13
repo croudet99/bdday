@@ -101,3 +101,84 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Global Birthday Calendar with Supabase auth/db, Resend email reminders, 3D globe of today's birthdays, public/private birthdays, personal mode, subscriptions."
+
+backend:
+  - task: "GET /api/health (config check)"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Returns { status:'ok', supabase:true, resend:true, from } when env vars are set."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ TESTED & WORKING. GET /api/health returns HTTP 200 with correct JSON: {status:'ok', service:'Birthday Globe API', supabase:true, resend:true, from:'Birthday Globe <notify@bdday.tech>'}. All required fields present and validated."
+
+  - task: "POST /api/test-email (Resend integration)"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Sends a real email via Resend from notify@bdday.tech. Expect { ok:true, id } on success. Missing 'to' should return 400. Use to='delivered@resend.dev' (Resend success simulator)."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ TESTED & WORKING. POST /api/test-email with {to:'delivered@resend.dev'} returns HTTP 200 with {ok:true, id:'7821f8a2-3daa-437e-b310-b514ae982a6f'}. Validation working: empty body {} returns HTTP 400 with {error:'to is required'}. Resend integration confirmed working. Note: Initial automated test encountered 502 errors due to server memory pressure/restart, but manual curl tests confirm endpoint is fully functional."
+
+  - task: "POST /api/reminders/run (24h reminder engine)"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Requires header Authorization: Bearer <CRON_SECRET>. Without/incorrect secret -> 401. With correct secret and body {dryRun:true} -> scans profiles/follows/personal_birthdays for tomorrow's birthdays and returns { ok:true, date, tasksFound, sent, skipped, failed }. Uses Supabase service role (bypasses RLS)."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ TESTED & WORKING. All scenarios validated: (1) No Authorization header -> HTTP 401 {error:'Unauthorized'}. (2) Wrong Authorization 'Bearer wrong' -> HTTP 401 {error:'Unauthorized'}. (3) Correct Authorization 'Bearer bday_cron_9f3a2c7e1b8d4f6a' with {dryRun:true} -> HTTP 200 {ok:true, date:'2026-09-14', tasksFound:0, sent:0, skipped:0, failed:0, dryRun:true, details:[]}. (4) With {dryRun:true, daysAhead:0} -> HTTP 200 {ok:true, date:'2026-09-13', tasksFound:0, sent:0, skipped:0, failed:0, dryRun:true, details:[]}. Supabase service-role connection confirmed working - successfully queries profiles, follows, and personal_birthdays tables without errors."
+
+frontend:
+  - task: "Auth + onboarding + globe/calendar/discover/personal/profile SPA"
+    implemented: true
+    working: "NA"
+    file: "app/page.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "Client SPA using Supabase browser client. Not yet tested by agent; awaiting user permission for frontend tests."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus: []
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    -agent: "main"
+    -message: "Backend implemented and tested."
+    -agent: "testing"
+    -message: "All 3 backend endpoints PASS. /api/health returns supabase:true,resend:true. /api/test-email sent a real email via Resend (id returned) and returns 400 without 'to'. /api/reminders/run enforces 401 on missing/wrong secret and returns ok:true with correct CRON_SECRET (Supabase service-role queries on profiles/follows/personal_birthdays work, no 500s). Frontend NOT tested (awaiting user permission)."
+    -agent: "testing"
+    -message: "✅ ALL 3 BACKEND ENDPOINTS TESTED & WORKING. (1) GET /api/health: Returns correct config status with all required fields. (2) POST /api/test-email: Successfully sends emails via Resend, validation working (400 for missing 'to'). Real email sent to delivered@resend.dev with id returned. (3) POST /api/reminders/run: Auth working (401 for missing/wrong token), reminder engine working with correct auth - successfully queries Supabase tables (profiles, follows, personal_birthdays) using service role, accepts dryRun and daysAhead parameters. No critical issues found. Note: Encountered transient 502 errors during automated test due to server memory pressure/restart, but manual verification confirms all endpoints fully functional."
