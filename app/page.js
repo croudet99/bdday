@@ -682,6 +682,7 @@ function ProfileTab({ user, profile, setProfile, reload }) {
   const [isPublic, setIsPublic] = useState(profile?.is_public ?? true)
   const [reminders, setReminders] = useState(profile?.reminders_enabled ?? true)
   const [busy, setBusy] = useState(false)
+  const [testing, setTesting] = useState(false)
   const dayCount = month ? daysInMonth(Number(month)) : 31
 
   async function save() {
@@ -694,6 +695,23 @@ function ProfileTab({ user, profile, setProfile, reload }) {
     setBusy(false)
     if (error) { toast.error(error.message); return }
     setProfile(data); toast.success('Profile saved ✨'); reload()
+  }
+
+  async function testReminder() {
+    setTesting(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch('/api/reminders/self-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+        body: '{}',
+      })
+      const j = await res.json()
+      if (!res.ok) throw new Error(j.error || 'Failed to send')
+      toast.success(`Test reminder sent to ${j.to} 🎉 Check your inbox!`)
+    } catch (e) {
+      toast.error(e.message || 'Could not send test')
+    } finally { setTesting(false) }
   }
 
   return (
@@ -718,6 +736,12 @@ function ProfileTab({ user, profile, setProfile, reload }) {
         <ToggleRow title="Show birth year" desc="Reveal your age publicly" checked={yearPublic} onChange={setYearPublic} disabled={!year} color={C.blue} />
         <ToggleRow title="Email reminders" desc="Emailed 24h before birthdays you follow" checked={reminders} onChange={setReminders} color={C.purple} />
         <Btn onClick={save} color={C.pink} disabled={busy} className="w-full py-3">{busy ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Save profile'}</Btn>
+        <div className="rounded-2xl border-[3px] border-dashed border-black/40 p-3 space-y-2">
+          <button onClick={testReminder} disabled={testing} className="w-full rounded-full border-[3px] border-black bg-white px-5 py-3 font-extrabold uppercase text-sm shadow-hard-sm hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition disabled:opacity-60 flex items-center justify-center gap-2">
+            {testing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Bell className="w-4 h-4" /> Send me a test reminder now</>}
+          </button>
+          <p className="text-xs font-semibold text-black/50 text-center">Emails you a live preview of the reminder you get 24h before your nearest subscribed/added birthday.</p>
+        </div>
       </div>
     </Panel>
   )

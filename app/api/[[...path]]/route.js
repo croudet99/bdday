@@ -74,6 +74,15 @@ function buildMessage(task) {
   }
 }
 
+function serverDaysUntil(month, day) {
+  const now = new Date()
+  const y = now.getUTCFullYear()
+  const today = Date.UTC(y, now.getUTCMonth(), now.getUTCDate())
+  let next = Date.UTC(y, month - 1, day)
+  if (next < today) next = Date.UTC(y + 1, month - 1, day)
+  return Math.round((next - today) / 86400000)
+}
+
 async function runReminders(opts = {}) {
   const db = admin()
   const daysAhead = opts.daysAhead == null ? 1 : Number(opts.daysAhead)
@@ -173,6 +182,39 @@ async function handleRoute(request, { params }) {
       const body = await request.json().catch(() => ({}))
       const result = await runReminders(body)
       return cors(NextResponse.json(result))
+    }
+
+    if (route === '/reminders/self-test' && method === 'POST') {
+      const authz = request.headers.get('authorization') || ''
+      const token = authz.startsWith('Bearer ') ? authz.slice(7) : ''
+      if (!token) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+      const db = admin()
+      const { data: userData, error: uErr } = await db.auth.getUser(token)
+      const user = userData && userData.user
+      if (uErr || !user) return cors(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }))
+
+      const { data: me } = await db.from('profiles').select('email,display_name').eq('id', user.id).maybeSingle()
+      const toEmail = (me && me.email) || user.email
+      const recipientName = (me && me.display_name) || 'there'
+      if (!toEmail) return cors(NextResponse.json({ error: 'No email on file' }, { status: 400 }))
+
+      const { data: fol } = await db.from('follows').select('followed_id').eq('follower_id', user.id)
+      const followedIds = (fol || []).map((f) => f.followed_id)
+      let candidates = []
+      if (followedIds.length) {
+        const { data: followed } = await db.from('profiles').select('display_name,birth_month,birth_day').in('id', followedIds)
+        ;(followed || []).forEach((p) => { if (p.birth_month) candidates.push({ name: p.display_name, m: p.birth_month, d: p.birth_day }) })
+      }
+      const { data: personal } = await db.from('personal_birthdays').select('person_name,birth_month,birth_day').eq('owner_id', user.id)
+      ;(personal || []).forEach((p) => candidates.push({ name: p.person_name, m: p.birth_month, d: p.birth_day }))
+      candidates = candidates.map((c) => ({ ...c, days: serverDaysUntil(c.m, c.d) })).sort((a, b) => a.days - b.days)
+      const pick = candidates[0]
+      const subjectName = pick ? pick.name : recipientName
+
+      const msg = buildMessage({ type: 'followed_birthday', recipientName, subjectName })
+      const data = await sendEmail({ to: toEmail, subject: '[TEST] ' + msg.subject, html: msg.html, text: msg.text })
+      await db.from('notifications').insert({ recipient_id: user.id, type: 'test_reminder', title: 'Test reminder sent', body: 'Preview of the email you get 24h before ' + subjectName + "'s birthday.", payload: {} })
+      return cors(NextResponse.json({ ok: true, to: toEmail, subjectName, daysUntil: pick ? pick.days : null, hadUpcoming: !!pick, id: data && data.id }))
     }
 
     return cors(NextResponse.json({ error: `Route ${route} not found` }, { status: 404 }))

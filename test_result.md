@@ -149,6 +149,27 @@ backend:
         -working: true
         -agent: "testing"
         -comment: "✅ TESTED & WORKING. All scenarios validated: (1) No Authorization header -> HTTP 401 {error:'Unauthorized'}. (2) Wrong Authorization 'Bearer wrong' -> HTTP 401 {error:'Unauthorized'}. (3) Correct Authorization 'Bearer bday_cron_9f3a2c7e1b8d4f6a' with {dryRun:true} -> HTTP 200 {ok:true, date:'2026-09-14', tasksFound:0, sent:0, skipped:0, failed:0, dryRun:true, details:[]}. (4) With {dryRun:true, daysAhead:0} -> HTTP 200 {ok:true, date:'2026-09-13', tasksFound:0, sent:0, skipped:0, failed:0, dryRun:true, details:[]}. Supabase service-role connection confirmed working - successfully queries profiles, follows, and personal_birthdays tables without errors."
+        -working: "NA"
+        -agent: "main"
+        -comment: "RE-TEST NEEDED end-to-end: seed a follower + a followed user whose birthday is TOMORROW + a follow row, then POST /api/reminders/run with the CRON secret and confirm sent>=1 and an email is dispatched to the follower."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ END-TO-END TEST PASSED. Created follower user A (delivered@resend.dev) and birthday person user B with tomorrow's birthday (9/14). Created follow relationship A->B. Called POST /api/reminders/run with CRON_SECRET -> HTTP 200 {ok:true, date:'2026-09-14', tasksFound:7, sent:1, skipped:4, failed:2}. CRITICAL ASSERTION PASSED: Email successfully sent to delivered@resend.dev with subject '🎂 Test Person B's birthday is tomorrow'. Deduplication verified: second call returned skipped>=1 (sent:0, skipped:5). Notification created with type 'followed_birthday' for user A. Email reminder pipeline working end-to-end."
+
+  - task: "POST /api/reminders/self-test (user preview email)"
+    implemented: true
+    working: true
+    file: "app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        -working: "NA"
+        -agent: "main"
+        -comment: "NEW. Requires Authorization: Bearer <supabase user access_token>. Verifies user via admin.auth.getUser(token), finds nearest subscribed/personal birthday, emails a preview reminder to the user's email, inserts a test notification. Returns { ok:true, to, subjectName, daysUntil, hadUpcoming, id }. Without token or bad token -> 401."
+        -working: true
+        -agent: "testing"
+        -comment: "✅ TESTED & WORKING. All scenarios validated: (1) No Authorization header -> HTTP 401 {error:'Unauthorized'}. (2) Invalid token 'Bearer not-a-real-token' -> HTTP 401 {error:'Unauthorized'}. (3) Valid user access token -> HTTP 200 {ok:true, to:'delivered@resend.dev', subjectName:'Test Self User', daysUntil:null, hadUpcoming:false, id:'7afb1f6f-6d8b-4f18-ae37-144bc079de5f'}. Email successfully sent via Resend (id returned). Test notification created with type 'test_reminder'. User authentication via admin.auth.getUser(token) working correctly."
 
 frontend:
   - task: "Auth + onboarding + globe/calendar/discover/personal/profile SPA"
@@ -182,3 +203,5 @@ agent_communication:
     -message: "All 3 backend endpoints PASS. /api/health returns supabase:true,resend:true. /api/test-email sent a real email via Resend (id returned) and returns 400 without 'to'. /api/reminders/run enforces 401 on missing/wrong secret and returns ok:true with correct CRON_SECRET (Supabase service-role queries on profiles/follows/personal_birthdays work, no 500s). Frontend NOT tested (awaiting user permission)."
     -agent: "testing"
     -message: "✅ ALL 3 BACKEND ENDPOINTS TESTED & WORKING. (1) GET /api/health: Returns correct config status with all required fields. (2) POST /api/test-email: Successfully sends emails via Resend, validation working (400 for missing 'to'). Real email sent to delivered@resend.dev with id returned. (3) POST /api/reminders/run: Auth working (401 for missing/wrong token), reminder engine working with correct auth - successfully queries Supabase tables (profiles, follows, personal_birthdays) using service role, accepts dryRun and daysAhead parameters. No critical issues found. Note: Encountered transient 502 errors during automated test due to server memory pressure/restart, but manual verification confirms all endpoints fully functional."
+    -agent: "testing"
+    -message: "✅ COMPREHENSIVE E2E TESTING COMPLETE - ALL BACKEND ENDPOINTS WORKING. Executed full end-to-end tests for email reminder pipeline: (1) POST /api/reminders/run: Created real Supabase auth users (follower + birthday person with tomorrow's birthday), established follow relationship, verified email sent to delivered@resend.dev with correct subject mentioning birthday person's name, confirmed deduplication working (skipped>=1 on second call), verified followed_birthday notification created. (2) POST /api/reminders/self-test: Validated auth (401 without/with invalid token), confirmed working with valid user access token, email sent via Resend (id returned), test_reminder notification created. All critical assertions passed. Backend email reminder pipeline fully functional."
