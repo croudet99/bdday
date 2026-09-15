@@ -279,7 +279,7 @@ function Landing({ publicBirthdays, onStart }) {
             className="flex items-center gap-2.5 font-semibold"
           >
             <span style={{ backgroundImage: GRAD_CORAL }} className="w-8 h-8 rounded-xl flex items-center justify-center shadow-glow-coral">
-              <Cake className="w-5 h-5 text-white" />
+              <Cake className="w-4.5 h-4.5 text-white" />
             </span>
             <span className="font-display text-[17px]">Birthday Globe</span>
           </motion.div>
@@ -622,7 +622,7 @@ function Dashboard({ user, profile, setProfile, publicBirthdays, followedIds, pe
             className="flex items-center gap-2.5 font-semibold"
           >
             <span style={{ backgroundImage: GRAD_CORAL }} className="w-8 h-8 rounded-xl flex items-center justify-center shadow-glow-coral">
-              <Cake className="w-5 h-5 text-white" />
+              <Cake className="w-4.5 h-4.5 text-white" />
             </span>
             <span className="hidden sm:inline font-display text-[17px]">Birthday Globe</span>
           </motion.div>
@@ -1032,7 +1032,7 @@ function PersonalTab({ user, personal, reload, followedIds, publicBirthdays, unf
       <Card className="p-6">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: T.coral + '18', border: `1px solid ${T.coral}25` }}>
-            <Plus className="w-5 h-5" style={{ color: T.coral }} />
+            <Plus className="w-4.5 h-4.5" style={{ color: T.coral }} />
           </div>
           <h3 className="font-semibold text-lg">Add a private birthday</h3>
         </div>
@@ -1063,7 +1063,7 @@ function PersonalTab({ user, personal, reload, followedIds, publicBirthdays, unf
         <Card className="p-6">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: T.amber + '18', border: `1px solid ${T.amber}25` }}>
-              <Users className="w-5 h-5" style={{ color: T.amber }} />
+              <Users className="w-4.5 h-4.5" style={{ color: T.amber }} />
             </div>
             <h3 className="font-semibold">Private birthdays ({personal.length})</h3>
           </div>
@@ -1091,7 +1091,7 @@ function PersonalTab({ user, personal, reload, followedIds, publicBirthdays, unf
         <Card className="p-6">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: T.coral + '18', border: `1px solid ${T.coral}25` }}>
-              <Heart className="w-5 h-5" style={{ color: T.coral }} />
+              <Heart className="w-4.5 h-4.5" style={{ color: T.coral }} />
             </div>
             <h3 className="font-semibold">Subscriptions ({subscribed.length})</h3>
           </div>
@@ -1218,7 +1218,7 @@ function ProfileTab({ user, profile, setProfile, reload }) {
       <div className="space-y-4">
         <Card className="p-6 space-y-3">
           <h3 className="font-semibold flex items-center gap-2">
-            <Lock className="w-5 h-5 text-white/60" /> Privacy
+            <Lock className="w-4.5 h-4.5 text-white/60" /> Privacy
           </h3>
           <ToggleRow title="Public birthday" desc="Show on the global calendar & globe" checked={isPublic} onChange={setIsPublic} />
           <ToggleRow title="Show birth year" desc="Reveal your age publicly" checked={yearPublic} onChange={setYearPublic} disabled={!year} />
@@ -1226,7 +1226,7 @@ function ProfileTab({ user, profile, setProfile, reload }) {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold flex items-center gap-2">
-              <Bell className="w-5 h-5 text-white/60" /> Reminders
+              <Bell className="w-4.5 h-4.5 text-white/60" /> Reminders
             </h3>
             <Switch checked={reminders} onCheckedChange={setReminders} className="data-[state=checked]:bg-[#10B981]" />
           </div>
