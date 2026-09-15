@@ -3,7 +3,7 @@ import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 
 export const metadata = {
-  title: 'Birthday Globe \u2014 never miss a birthday, anywhere on Earth',
+  title: 'Birthday Globe — never miss a birthday, anywhere on Earth',
   description: 'A global birthday calendar. Add your birthday, discover celebrations around the world on a 3D globe, follow friends and get reminders.',
 }
 
@@ -13,12 +13,12 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{__html:'window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);'}} />
       </head>
       <body>
         <Providers>{children}</Providers>
-        <Toaster position="top-center" richColors />
+        <Toaster position="top-center" richColors toastOptions={{ style: { borderRadius: '16px', background: 'rgba(12,12,24,0.9)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' } }} />
       </body>
     </html>
   )

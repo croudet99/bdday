@@ -7,10 +7,15 @@ export default function GlobeView({ points = [], onPointClick }) {
   const globeEl = useRef()
   const wrapRef = useRef()
   const [width, setWidth] = useState(700)
+  const [height, setHeight] = useState(480)
 
   useEffect(() => {
     function resize() {
-      if (wrapRef.current) setWidth(wrapRef.current.clientWidth)
+      if (wrapRef.current) {
+        const w = wrapRef.current.clientWidth
+        setWidth(w)
+        setHeight(w < 500 ? 380 : 480)
+      }
     }
     resize()
     window.addEventListener('resize', resize)
@@ -21,8 +26,9 @@ export default function GlobeView({ points = [], onPointClick }) {
     if (globeEl.current) {
       const controls = globeEl.current.controls()
       controls.autoRotate = true
-      controls.autoRotateSpeed = 0.5
+      controls.autoRotateSpeed = 0.45
       controls.enableZoom = true
+      controls.zoomSpeed = 0.6
       globeEl.current.pointOfView({ altitude: 2.3 })
     }
   }, [])
@@ -32,11 +38,11 @@ export default function GlobeView({ points = [], onPointClick }) {
       <Globe
         ref={globeEl}
         width={width}
-        height={480}
+        height={height}
         backgroundColor="rgba(0,0,0,0)"
         globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-        atmosphereColor="#8ea2ff"
-        atmosphereAltitude={0.16}
+        atmosphereColor="#5EEAD4"
+        atmosphereAltitude={0.18}
         pointsData={points}
         pointLat="lat"
         pointLng="lng"
